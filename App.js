@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Button, Overlay, Icon, Input } from '@rneui/themed';
+import { Button, Overlay, Icon, Input } from '@rneui/base';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
-function ListMaker1000Final () {
+function ListMaker1000 () {
 
   // INITIAL VALUES FOR TESTING
   const initTodos = [
@@ -15,26 +16,22 @@ function ListMaker1000Final () {
   const [todos, setTodos] = useState(initTodos);
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [inputText, setInputText] = useState('');
-  const [selectedItem, setSelectedItem] = useState('');
+  const [selectedItem, setSelectedItem] = useState(undefined);
 
   // DATA MODEL FUNCTIONS (CRUD)
   const createTodo = (todoText) => {
-    let newTodo = {
-      text: todoText,
-      key: Date.now()
-    }
-      setTodos(todos.concat(newTodo));
+    setTodos([...todos, {text: todoText, key: new Date().getTime()}])
   }
 
   const updateTodo = (todo, newText) => { 
-    let newTodo = {...todo, text: newText};
-    let newTodos = todos.map(elem=>elem.key===todo.key?newTodo:elem);
+    let newTodo = {...todo}; // or Object.assign({}, todo);
+    newTodo.text = newText;
+    let newTodos = todos.map(item=>item.key===todo.key ? newTodo : item );
     setTodos(newTodos);
   }
 
-  const deleteTodo = (todo) => {    
-    let newTodos = todos.filter((item)=>item.key != todo.key);
-    setTodos(newTodos);
+  const deleteTodo = (todo) => {
+    setTodos(todos.filter(t => t.key !== todo.key));
   }
   // END DATA MODEL
 
@@ -46,34 +43,20 @@ function ListMaker1000Final () {
           <Text style={styles.listItemText}>{item.text}</Text>
         </View>
         <TouchableOpacity 
-          style={styles.li2}  
+          style={styles.li2}
           onPress={()=>{
             setSelectedItem(item);
             setInputText(item.text);
             setOverlayVisible(true);
           }}  
         >
-          <Icon 
-            name="edit"
-            type="font-awesome"
-            color="black"
-            size={25}
-            iconStyle={{ marginRight: 10 }}
-          />
+          <MaterialIcons name="edit" size={24} color="black" />
         </TouchableOpacity>
         <TouchableOpacity 
           style={styles.li3}
-          onPress={()=>{
-            deleteTodo(item);
-          }}  
+          onPress={() => deleteTodo(item)}
         >
-          <Icon 
-            name="trash"
-            type="font-awesome"
-            color="black"
-            size={25}
-            iconStyle={{ marginRight: 10 }}
-          />
+          <MaterialIcons name="delete" size={24} color="black" />
         </TouchableOpacity>
       </View>
     );
@@ -103,7 +86,7 @@ function ListMaker1000Final () {
           color='#AAAACC'
           onPress={()=>{setOverlayVisible(true)}}
         >
-          <Icon name='add' color='#444477' size={32}/>
+          <MaterialIcons name="add" size={36} color="black" />
         </Button>
       </View>
 
@@ -111,7 +94,7 @@ function ListMaker1000Final () {
       <Overlay 
         isVisible={overlayVisible} 
         onBackdropPress={()=>setOverlayVisible(false)}
-        overlayStyle={styles.overlayView}
+        overlayStyle={styles.overlayView}  
       >
         <Input
           placeholder='New Todo Item'
@@ -201,12 +184,9 @@ const styles = StyleSheet.create({
     flex: 0.2,
     justifyContent: 'center',
     alignItems: 'center',
-    width: '80%'
+    width: '80%',
+    backgroundColor: 'white'
   }
 });
 
-//export default ListMaker1000Start;
-// export default ListMaker1000Create;
-// export default ListMaker1000Delete;
-export default ListMaker1000Final;
-//export default ContextDemo;
+export default ListMaker1000;
