@@ -1,5 +1,5 @@
 # Hw3: ListMaker 1000
-**SI669 Fall 2023**
+**SI669 Fall 2025**
 
 ## Video Walkthrough 
 See the [Demo Video](https://youtube.com/shorts/HQBAaiBEwPw).
