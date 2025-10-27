@@ -1,37 +1,79 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button, Overlay, Icon, Input } from '@rneui/base';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity } from 'react-native';
+
+import { initializeApp } from 'firebase/app';
+import { getFirestore, collection, query,
+  doc, getDocs, updateDoc, addDoc, deleteDoc
+} from "firebase/firestore";
+import { firebaseConfig } from './Secrets';
+
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 function ListMaker1000 () {
 
-  // INITIAL VALUES FOR TESTING
-  const initTodos = [
-    { text: 'Get milk', key: 1},
-    { text: 'Drop off dry cleaning', key: 2},
-    { text: 'Finish 669 homework', key: 3}
-  ];
 
   // STATE VARIABLES AND THEIR UPDATERS
-  const [todos, setTodos] = useState(initTodos);
+  const [todos, setTodos] = useState([]);
   const [overlayVisible, setOverlayVisible] = useState(false);
   const [inputText, setInputText] = useState('');
   const [selectedItem, setSelectedItem] = useState(undefined);
 
-  // DATA MODEL FUNCTIONS (CRUD)
-  const createTodo = (todoText) => {
-    setTodos([...todos, {text: todoText, key: new Date().getTime()}])
+
+  async function loadInitList() {
+    const initList = [];
+    const collRef = collection(db, 'todos');
+    const q = query(collRef);
+    const querySnapshot = await getDocs(q);
+    querySnapshot.docs.forEach((docSnapshot)=>{
+      const todo = docSnapshot.data();
+      todo.key = docSnapshot.id;
+      initList.push(todo);
+    });
+    setTodos(initList);
   }
 
-  const updateTodo = (todo, newText) => { 
+  useEffect(()=>{ // don't forget to import me!
+    loadInitList();
+  }, []);
+
+  // DATA MODEL FUNCTIONS (CRUD)
+
+  const createTodo = async (todoText) => {
+    const newTodo = {
+      text: todoText,
+    }
+    const todoCollRef = collection(db, 'todos');
+    const todoSnap = await addDoc(todoCollRef, newTodo);  
+    newTodo.key = todoSnap.id;
+    const newTodos = [...todos, newTodo];
+    setTodos(newTodos);
+  }
+
+  const updateTodo = async (todo, newText) => { 
     let newTodo = {...todo}; // or Object.assign({}, todo);
     newTodo.text = newText;
+    delete newTodo.key;
+    const docToUpdate = doc(db, 'todos', todo.key);
+    await updateDoc(docToUpdate, newTodo);
+
+
     let newTodos = todos.map(item=>item.key===todo.key ? newTodo : item );
     setTodos(newTodos);
   }
 
-  const deleteTodo = (todo) => {
-    setTodos(todos.filter(t => t.key !== todo.key));
+
+  const deleteTodo = async (todo) => {    
+    // delete from Firestore
+    const docToDelete = doc(db, 'todos', todo.key);
+    await deleteDoc(docToDelete);
+
+    // delete from component state
+    const newTodos = todos.filter((item)=>item.key != todo.key);
+    setTodos(newTodos);
   }
   // END DATA MODEL
 
